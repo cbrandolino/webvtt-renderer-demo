@@ -1,24 +1,20 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import Player from 'react-player';
+import ReactJson from 'react-json-view';
+import useCueTrigger from './useCueTrigger';
 
-function App() {
+const App = () => {
+  const { updateTime, state } = useCueTrigger();
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Player
+        playsInline
+        poster="/assets/poster.png"
+        url="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
+        onProgress={({playedSeconds}) => updateTime(playedSeconds)}
+        controls
+      />
+      <ReactJson src={state} />
     </div>
   );
 }
