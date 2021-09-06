@@ -1,19 +1,19 @@
 export type Cue =  {
-  start: number,
-  end: number,
-  cue: {
-    props: Object,
-    text: string,
-  }
+  startTime: number,
+  endTime: number,
+  vertical?: string,
+  text: string,
 } 
 
 export default [
   {
-    start: 0,
-    end: 100,
-    cue: {
-      props: {},
-      text: 'Just a basic subtitle'
-    }
-  }
+    startTime: 0,
+    endTime: 2,
+    text: 'Just a basic subtitle'
+  },
+  {
+    startTime: 1,
+    endTime: 3,
+    text: 'here is another'
+  },
 ]
