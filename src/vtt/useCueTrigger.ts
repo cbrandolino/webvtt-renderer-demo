@@ -1,17 +1,20 @@
-import { Reducer, useReducer, useEffect } from 'react'
-import { createCuesDiv, parseVtt } from './cuesHelper';
-import { Cue } from './cuesHelper';
+import { Reducer, useReducer, useEffect, useRef } from 'react'
+import { createCuesDiv } from './renderer';
+import { parseVtt } from './parser';
+import { Cue } from './types';
 
 interface ICueState {
   time:number,
   currentCues:Array<Cue>,
   parsedCues:Array<Cue>;
+  parsedRegions:Array<VTTRegion>;
 }
 
 const initialState = {
   time: 0,
   currentCues: [],
   parsedCues: [],
+  parsedRegions: [],
 };
 
 const getCurrentCues = (time:number, parsedCues:Array<Cue>):Array<Cue> => 
@@ -25,32 +28,34 @@ const cueReducer:Reducer<ICueState, {type: string, payload: any}> = (state, acti
         time: action.payload,
         currentCues: getCurrentCues(action.payload, state.parsedCues),
       };
-    case 'loadCues':
+    case 'loadData':
       return {
         ...state,
-        parsedCues: action.payload
+        ...action.payload
       };
     default:
       return state;
     }
 }
 
-const useCues = (element: HTMLDivElement | null, source:string) => {
+const useCues = (source:string) => {
+  const cueBoxRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(cueReducer, initialState);
   const updateTime = (time:number) => dispatch({ type: 'updateTime', payload: time });
-  const parserCallback = (cues:Array<Cue>) => dispatch({ type: 'loadCues', payload: cues });
+  const parserCallback = (data:{parsedCues:Array<Cue>}) =>
+    dispatch({ type: 'loadData', payload: data });
 
   useEffect(() => {
-    parseVtt(source, parserCallback);
-  }, []);
+    source && parseVtt(source, parserCallback);
+  }, [source]);
 
   useEffect(() => {
-    if (element) {
-      createCuesDiv(state.currentCues, element)
+    if (cueBoxRef.current) {
+      createCuesDiv(state.currentCues, cueBoxRef.current);
     }
   }, [state.currentCues]);
 
-  return { updateTime, state };
+  return { updateTime, state, cueBoxRef };
 }
 
 export default useCues;

@@ -1,12 +1,17 @@
 .PlayerContainer {
   position: relative;
-  width: 640px;
-  height: 360px;
+  width: 100%;
+  height: 300px;
+}
+
+.meta-container {
+  height: 300px;
+  overflow-y: scroll;
 }
 
 #cueBox {
   position: absolute;
-  bottom: 50px;
-  height: 310px;
-  width: 640px;
+  bottom: 55px;
+  height: 245px;
+  width: 100%;
 }
