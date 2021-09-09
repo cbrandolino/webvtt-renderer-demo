@@ -1,10 +1,10 @@
-import { WebVTT } from 'vtt.js';
+import Parser from '../vttjs/Parser';
 import { pick } from 'lodash';
 
 import { Cue, cueKeys } from './types';
 
 export const parseVtt = (vtt:string, onParsed:Function):void => {
-  const parser = new WebVTT.Parser(window, WebVTT.StringDecoder());
+  const parser = new Parser(window);
 
   const parsedCues:Array<Cue> = [];
   const parsedRegions:Array<VTTRegion> = [];
