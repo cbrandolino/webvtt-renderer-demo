@@ -1,35 +1,51 @@
-import Settings from '../Settings';
+import Settings from './Settings';
 
-import parseOptions from './ParseOptions';
+import parseOptions from './parseOptions';
 import ParsingError from './ParsingError';
 import parseCue from './parseCue';
 
-interface IParserProps {
-  window: Window,
-  state: string,
-  buffer: string,
-  decoder: TextDecoder,
-  regionList: Array<unknown>
-}
-const Parser = function(this:IParserProps, window:Window) {
-  this.window = window;
-  this.state = "INITIAL";
-  this.buffer = "";
-  this.decoder = new TextDecoder("utf8");
-  this.regionList = [];
+interface IParserConstructor {
+  onError?: (e:Error) => void;
+  onRegion?: (region:VTTRegion) => void;
+  onCue?: (cue:VTTCue) => void;
+  onFlush?: () => void;
 };
 
-Parser.prototype = {
-  // If the error is a ParsingError then report it to the consumer if
-  // possible. If it's not a ParsingError then throw it like normal.
-  reportOrThrowError: function(e:Error) {
+interface IParser extends IParserConstructor {
+  parse: (data?:BufferSource) => IParser,
+}
+
+type ParserState = "INITIAL" | "HEADER" | "NOTE" | "ID" | "CUE" | "BADCUE" | "CUETEXT" | "BADWEBVTT";
+
+class Parser implements IParser {
+  state:ParserState = "INITIAL";
+  buffer:string = "";
+  decoder:TextDecoder = new TextDecoder("utf8");
+  cue:VTTCue|null;
+  regionList:Array<{ id:string, region: VTTRegion}>
+  onError;
+  onRegion;
+  onCue;
+  onFlush;
+
+  constructor({ onError, onRegion, onCue, onFlush }:IParserConstructor){
+    this.onError = onError;
+    this.onRegion = onRegion;
+    this.onCue = onCue;
+    this.onFlush = onFlush;
+    this.cue = null;
+    this.regionList = [];
+  }
+
+  private reportOrThrowError(e:Error|unknown) {
     if (e instanceof ParsingError) {
-      this.onparsingerror && this.onparsingerror(e);
+      this.onError && this.onError(e);
     } else {
       throw e;
     }
-  },
-  parse: function (data:string) {
+  }
+
+  public parse(data?:BufferSource|string) {
     var self = this;
 
     // If there is no data then we won't decode it, but will just try to parse
@@ -37,7 +53,9 @@ Parser.prototype = {
     // example when flush() is called.
     if (data) {
       // Try to decode the data that we received.
-      self.buffer += self.decoder.decode(data, {stream: true});
+      self.buffer += (typeof data === 'string') ?
+         data:
+         self.decoder.decode(data, {stream: true});
     }
 
     function collectNextLine() {
@@ -99,7 +117,7 @@ Parser.prototype = {
       // Create the region, using default values for any values that were not
       // specified.
       if (settings.has("id")) {
-        var region = new self.window.VTTRegion();
+        var region = new VTTRegion();
         region.width = settings.get("width", 100);
         region.lines = settings.get("lines", 3);
         region.regionAnchorX = settings.get("regionanchorX", 0);
@@ -108,7 +126,7 @@ Parser.prototype = {
         region.viewportAnchorY = settings.get("viewportanchorY", 100);
         region.scroll = settings.get("scroll", "");
         // Register the region.
-        self.onregion && self.onregion(region);
+        self.onRegion && self.onRegion(region);
         // Remember the VTTRegion for later in case we parse any VTTCues that
         // reference it.
         self.regionList.push({
@@ -132,7 +150,7 @@ Parser.prototype = {
 
     // 5.1 WebVTT file parsing.
     try {
-      var line;
+      let line = '';
       if (self.state === "INITIAL") {
         // We can't start parsing until we have the first line.
         if (!/\r\n|\n/.test(self.buffer)) {
@@ -178,6 +196,7 @@ Parser.prototype = {
             self.state = "ID";
           }
           continue;
+        // @ts-ignore-line
         case "ID":
           // Check for the start of NOTE blocks.
           if (/^NOTE($|[ \t])/.test(line)) {
@@ -188,7 +207,7 @@ Parser.prototype = {
           if (!line) {
             continue;
           }
-          self.cue = new self.window.VTTCue(0, 0, "");
+          self.cue = new VTTCue(0, 0, "");
           self.state = "CUE";
           // 30-39 - Check if self line contains an optional identifier or timing data.
           if (line.indexOf("-->") === -1) {
@@ -200,8 +219,8 @@ Parser.prototype = {
         case "CUE":
           // 40 - Collect cue timings and settings.
           try {
-            parseCue(line, self.cue, self.regionList);
-          } catch (e) {
+            parseCue(line, self.cue!, self.regionList);
+          } catch (e:unknown) {
             self.reportOrThrowError(e);
             // In case of an error ignore rest of the cue.
             self.cue = null;
@@ -218,15 +237,15 @@ Parser.prototype = {
           // one as a new cue.
           if (!line || (hasSubstring && (alreadyCollectedLine = true))) {
             // We are done parsing self cue.
-            self.oncue && self.oncue(self.cue);
+            self.onCue && self.cue && self.onCue(self.cue);
             self.cue = null;
             self.state = "ID";
             continue;
           }
-          if (self.cue.text) {
-            self.cue.text += "\n";
+          if (self.cue!.text) {
+            self.cue!.text += "\n";
           }
-          self.cue.text += line;
+          self.cue!.text += line;
           continue;
         case "BADCUE": // BADCUE
           // 54-62 - Collect and discard the remaining cue.
@@ -240,8 +259,8 @@ Parser.prototype = {
       self.reportOrThrowError(e);
 
       // If we are currently parsing a cue, report what we have.
-      if (self.state === "CUETEXT" && self.cue && self.oncue) {
-        self.oncue(self.cue);
+      if (self.state === "CUETEXT" && self.cue && self.onCue) {
+        self.onCue(self.cue);
       }
       self.cue = null;
       // Enter BADWEBVTT state if header was not parsed correctly otherwise
@@ -249,8 +268,9 @@ Parser.prototype = {
       self.state = self.state === "INITIAL" ? "BADWEBVTT" : "BADCUE";
     }
     return this;
-  },
-  flush: function () {
+  }
+
+  flush() {
     var self = this;
     try {
       // Finish decoding the stream.
@@ -269,9 +289,9 @@ Parser.prototype = {
     } catch(e) {
       self.reportOrThrowError(e);
     }
-    self.onflush && self.onflush();
+    self.onFlush && self.onFlush();
     return this;
   }
-};
+}
 
 export default Parser;

@@ -1,5 +1,5 @@
 import ParsingError from "./ParsingError";
-import parseOptions from "./ParseOptions";
+import parseOptions from "./parseOptions";
 import Settings from "./Settings";
 
 function parseTimeStamp(input:string):number|null {
