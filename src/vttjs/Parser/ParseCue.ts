@@ -2,20 +2,22 @@ import ParsingError from "./ParsingError";
 import parseOptions from "./ParseOptions";
 import Settings from "../Settings";
 
-function parseTimeStamp(input) {
+function parseTimeStamp(input:string):number|null {
 
-  function computeSeconds(h, m, s, f) {
+  function computeSeconds(h:number, m:number, s:number, f:number) {
     return (h | 0) * 3600 + (m | 0) * 60 + (s | 0) + (f | 0) / 1000;
   }
 
-  var m = input.match(/^(\d+):(\d{2})(:\d{2})?\.(\d{3})/);
-  if (!m) {
+  var matches = input.match(/^(\d+):(\d{2})(:\d{2})?\.(\d{3})/);
+  if (!matches) {
     return null;
   }
 
+  const m = matches.map(x => parseInt(x.replace(':', '')))
+
   if (m[3]) {
     // Timestamp takes the form of [hours]:[minutes]:[seconds].[milliseconds]
-    return computeSeconds(m[1], m[2], m[3].replace(":", ""), m[4]);
+    return computeSeconds(m[1], m[2], m[3], m[4]);
   } else if (m[1] > 59) {
     // Timestamp takes the form of [hours]:[minutes].[milliseconds]
     // First position is hours as it's over 59.

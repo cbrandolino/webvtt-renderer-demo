@@ -119,7 +119,7 @@ Parser.prototype = {
     }
 
     // 3.2 WebVTT metadata header syntax
-    function parseHeader(input) {
+    function parseHeader(input:string) {
       parseOptions(input, function (k, v) {
         switch (k) {
         case "Region":

@@ -15,7 +15,7 @@ class ParsingError extends Error implements IParsingError {
   code;
   message = '';
 
-  constructor(errorData:{ code: number, message?: string}, message: string) {
+  constructor(errorData:{ code: number, message?: string}, message?: string) {
     super(message || errorData.message);
     this.code = errorData.code
   }
