@@ -3,35 +3,32 @@
 // property can be overriden by passing in a message parameter.
 
 
-interface IParsingErrorProps {
+interface IParsingError {
   name: string,
-  code: number,
-  message: string,
+  code?: number,
+  message?: string,
 }
 
 // See ParsingError.Errors below for acceptable errors.
-function ParsingError(
-  this:IParsingErrorProps,
-  errorData:{code: number, message: string },
-  message?: string
-) {
-  this.name = "ParsingError";
-  this.code = errorData.code;
-  this.message = message || errorData.message;
-}
+class ParsingError extends Error implements IParsingError {
+  name = 'ParsingError';
+  code;
+  message = '';
 
-ParsingError.prototype = Object.create(Error.prototype);
-ParsingError.prototype.constructor = ParsingError;
+  constructor(errorData:{ code: number, message?: string}, message: string) {
+    super(message || errorData.message);
+    this.code = errorData.code
+  }
 
-// ParsingError metadata for acceptable ParsingErrors.
-ParsingError.Errors = {
-  BadSignature: {
-    code: 0,
-    message: "Malformed WebVTT signature."
-  },
-  BadTimeStamp: {
-    code: 1,
-    message: "Malformed time stamp."
+  static Errors = {
+    BadSignature: {
+      code: 0,
+      message: "Malformed WebVTT signature."
+    },
+    BadTimeStamp: {
+      code: 1,
+      message: "Malformed time stamp."
+    }
   }
 };
 
