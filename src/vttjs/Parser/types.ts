@@ -1,0 +1,1 @@
+export type CuePropValue = string | number | null | boolean;

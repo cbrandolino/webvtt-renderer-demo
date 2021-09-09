@@ -1,6 +1,6 @@
 import ParsingError from "./ParsingError";
 import parseOptions from "./ParseOptions";
-import Settings from "../Settings";
+import Settings from "./Settings";
 
 function parseTimeStamp(input:string):number|null {
 
@@ -28,7 +28,7 @@ function parseTimeStamp(input:string):number|null {
   }
 }
 
-function parseCue(input, cue, regionList) {
+function parseCue(input:string, cue:VTTCue, regionList:Array<{region: VTTRegion, id: string}>) {
   // Remember the original input if we need to throw an error.
   var oInput = input;
   // 4.1 WebVTT timestamp
@@ -44,7 +44,7 @@ function parseCue(input, cue, regionList) {
   }
 
   // 4.4.2 WebVTT cue settings
-  function consumeCueSettings(input, cue) {
+  function consumeCueSettings(input:string, cue:VTTCue) {
     var settings = new Settings();
 
     parseOptions(input, function (k, v) {

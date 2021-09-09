@@ -1,9 +1,13 @@
+import { CuePropValue } from './types';
+
 // A settings object holds key/value pairs and will ignore anything but the first
 // assignment to a specific key.
 interface ISettings {
   values: Object;
   set: (k: string, v: unknown) => void;
 }
+
+type Defaults = Record<string, CuePropValue>|CuePropValue;
 
 class Settings implements ISettings {
   values = Object.create(null);
@@ -19,7 +23,7 @@ class Settings implements ISettings {
   // a number of possible default values as properties where 'defaultKey' is
   // the key of the property that will be chosen; otherwise it's assumed to be
   // a single value.
-  get(k:string, dflt?:{[key:string]:unknown}|string|number, defaultKey?:string) {
+  get(k:string, dflt?:Defaults, defaultKey?:string) {
     const defaultValue = (defaultKey && (dflt instanceof Object)) ? dflt[defaultKey] : dflt;
     return this.has(k) ? this.values[k] : defaultValue;
   }
