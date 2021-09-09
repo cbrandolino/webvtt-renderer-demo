@@ -1,4 +1,4 @@
-import Parser from '../vttjs/Parser';
+import Parser from '../../lib/Parser';
 import { pick } from 'lodash';
 
 import { Cue, cueKeys } from './types';

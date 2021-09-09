@@ -1,4 +1,4 @@
-import { CuePropValue } from './types';
+import { CuePropValue } from '../types';
 
 // A settings object holds key/value pairs and will ignore anything but the first
 // assignment to a specific key.
