@@ -11,13 +11,13 @@ interface IParserConstructor {
   onFlush?: () => void;
 };
 
-interface IParser extends IParserConstructor {
+interface IVTTParserextends IParserConstructor {
   parse: (data?:BufferSource) => IParser,
 }
 
 type ParserState = "INITIAL" | "HEADER" | "NOTE" | "ID" | "CUE" | "BADCUE" | "CUETEXT" | "BADWEBVTT";
 
-class Parser implements IParser {
+class VTTParserimplements IVTTParser{
   state:ParserState = "INITIAL";
   buffer:string = "";
   decoder:TextDecoder = new TextDecoder("utf8");

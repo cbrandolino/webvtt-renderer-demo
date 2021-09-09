@@ -1,3 +1,3 @@
-import Parser from './Parser';
+import VTTParserfrom './Parser';
 
-export { Parser };
+export { VTTParser};

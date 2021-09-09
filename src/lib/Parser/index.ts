@@ -1,2 +1,2 @@
-import Parser from './Parser';
-export default Parser;
+import VTTParser from './VTTParser';
+export default VTTParser;
