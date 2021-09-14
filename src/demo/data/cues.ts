@@ -8,12 +8,12 @@ STYLE
 }
 
 Intro
-00:00:00.000 --> 00:00:05.000 align:left line:-10
+00:00:00.000 --> 00:00:05.000 align:center
 <b.yellow>Here</b> is an example subtitle...
 <00:03.500>hits your eyelalala
 lalla
 
-00:00:03.000 --> 00:00:07.000 position: 100% line:0 align:right
+00:00:03.000 --> 00:00:07.000 align:right
 And here is another one, positioned differently.
 
 00:00:08.000 --> 00:00:10.000 A:start region:fred

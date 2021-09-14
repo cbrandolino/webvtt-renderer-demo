@@ -3,25 +3,27 @@ import Settings from './Settings';
 import parseOptions from './parseOptions';
 import ParsingError from './ParsingError';
 import parseCue from './parseCue';
+import { XCue } from '..';
+import { JsonCue } from '../types';
 
 interface IParserConstructor {
   onError?: (e:Error) => void;
   onRegion?: (region:VTTRegion) => void;
-  onCue?: (cue:VTTCue) => void;
+  onCue?: (cue:JsonCue) => void;
   onFlush?: () => void;
 };
 
-interface IVTTParserextends IParserConstructor {
-  parse: (data?:BufferSource) => IParser,
+interface IVTTParser extends IParserConstructor {
+  parse: (data?:BufferSource) => IVTTParser,
 }
 
 type ParserState = "INITIAL" | "HEADER" | "NOTE" | "ID" | "CUE" | "BADCUE" | "CUETEXT" | "BADWEBVTT";
 
-class VTTParserimplements IVTTParser{
+class VTTParser implements IVTTParser {
   state:ParserState = "INITIAL";
   buffer:string = "";
   decoder:TextDecoder = new TextDecoder("utf8");
-  cue:VTTCue|null;
+  cue:JsonCue|null;
   regionList:Array<{ id:string, region: VTTRegion}>
   onError;
   onRegion;
@@ -207,7 +209,7 @@ class VTTParserimplements IVTTParser{
           if (!line) {
             continue;
           }
-          self.cue = new VTTCue(0, 0, "");
+          self.cue = new XCue(0, 0, "").toJSON();
           self.state = "CUE";
           // 30-39 - Check if self line contains an optional identifier or timing data.
           if (line.indexOf("-->") === -1) {
@@ -260,7 +262,7 @@ class VTTParserimplements IVTTParser{
 
       // If we are currently parsing a cue, report what we have.
       if (self.state === "CUETEXT" && self.cue && self.onCue) {
-        self.onCue(self.cue);
+        self.onCue(self.cue as XCue);
       }
       self.cue = null;
       // Enter BADWEBVTT state if header was not parsed correctly otherwise
@@ -294,4 +296,4 @@ class VTTParserimplements IVTTParser{
   }
 }
 
-export default Parser;
+export default VTTParser;

@@ -1,16 +1,14 @@
-import Parser from '../../lib/Parser';
-import { pick } from 'lodash';
-
-import { Cue, cueKeys } from './types';
+import Parser from '../../lib/VTTParser';
+import { JsonCue } from '../../lib/types';
 
 export const parseVtt = (vtt:string, onParsed:Function):void => {
-  const parsedCues:Array<Cue> = [];
+  const parsedCues:Array<JsonCue> = [];
   const parsedRegions:Array<VTTRegion> = [];
 
   const parserSettings = {
     onError: console.log,
     onFlush: () => onParsed({ parsedCues, parsedRegions }),
-    onCue: (cue:VTTCue) => parsedCues.push(pick(cue, cueKeys) as Cue),
+    onCue: (cue:JsonCue) => parsedCues.push(cue),
     onRegion: (region:VTTRegion) => parsedRegions.push(region),
   };
 

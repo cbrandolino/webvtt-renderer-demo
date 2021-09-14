@@ -1,36 +1,13 @@
 import ParsingError from "./ParsingError";
 import parseOptions from "./parseOptions";
 import Settings from "./Settings";
+import parseTimeStamp from "../shared/parseTimestamp";
+import { JsonCue } from "../types";
 
-function parseTimeStamp(input:string):number|null {
-
-  function computeSeconds(h:number, m:number, s:number, f:number) {
-    return (h | 0) * 3600 + (m | 0) * 60 + (s | 0) + (f | 0) / 1000;
-  }
-
-  var matches = input.match(/^(\d+):(\d{2})(:\d{2})?\.(\d{3})/);
-  if (!matches) {
-    return null;
-  }
-
-  const m = matches.map(x => parseInt(x.replace(':', '')))
-
-  if (m[3]) {
-    // Timestamp takes the form of [hours]:[minutes]:[seconds].[milliseconds]
-    return computeSeconds(m[1], m[2], m[3], m[4]);
-  } else if (m[1] > 59) {
-    // Timestamp takes the form of [hours]:[minutes].[milliseconds]
-    // First position is hours as it's over 59.
-    return computeSeconds(m[1], m[2], 0,  m[4]);
-  } else {
-    // Timestamp takes the form of [minutes]:[seconds].[milliseconds]
-    return computeSeconds(0, m[1], m[2], m[4]);
-  }
-}
-
-function parseCue(input:string, cue:VTTCue, regionList:Array<{region: VTTRegion, id: string}>) {
+function parseCue(input:string, cue:JsonCue, regionList:Array<{region: VTTRegion, id: string}>) {
   // Remember the original input if we need to throw an error.
   var oInput = input;
+  
   // 4.1 WebVTT timestamp
   function consumeTimeStamp() {
     var ts = parseTimeStamp(input);
@@ -44,7 +21,7 @@ function parseCue(input:string, cue:VTTCue, regionList:Array<{region: VTTRegion,
   }
 
   // 4.4.2 WebVTT cue settings
-  function consumeCueSettings(input:string, cue:VTTCue) {
+  function consumeCueSettings(input:string, cue:JsonCue) {
     var settings = new Settings();
 
     parseOptions(input, function (k, v) {
@@ -87,11 +64,13 @@ function parseCue(input:string, cue:VTTCue, regionList:Array<{region: VTTRegion,
       }
     }, /:/, /\s/);
 
+    console.log('parsing cue:', cue)
+
     // Apply default values for any missing fields.
     cue.region = settings.get("region", null);
     cue.vertical = settings.get("vertical", "");
     cue.line = settings.get("line", "auto");
-    cue.lineAlign = settings.get("lineAlign", "start");
+    cue.lineAlign = settings.get("lineAlign", "center");
     cue.snapToLines = settings.get("snapToLines", true);
     cue.size = settings.get("size", 100);
     cue.align = settings.get("align", "middle");
@@ -99,11 +78,14 @@ function parseCue(input:string, cue:VTTCue, regionList:Array<{region: VTTRegion,
     cue.positionAlign = settings.get("positionAlign", {
       start: "start",
       left: "start",
-      middle: "middle",
+      center: "center",
       end: "end",
       right: "end"
     }, cue.align);
+
+    console.log('defaults applied!', cue)
   }
+
 
   function skipWhitespace() {
     input = input.replace(/^\s+/, "");

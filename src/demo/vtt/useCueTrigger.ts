@@ -1,12 +1,12 @@
 import { Reducer, useReducer, useEffect, useRef } from 'react'
 import { createCuesDiv } from './renderer';
 import { parseVtt } from './parser';
-import { Cue } from './types';
+import { JsonCue } from '../../lib/types';
 
 interface ICueState {
   time:number,
-  currentCues:Array<Cue>,
-  parsedCues:Array<Cue>;
+  currentCues:Array<JsonCue>,
+  parsedCues:Array<JsonCue>;
   parsedRegions:Array<VTTRegion>;
 }
 
@@ -17,7 +17,7 @@ const initialState = {
   parsedRegions: [],
 };
 
-const getCurrentCues = (time:number, parsedCues:Array<Cue>):Array<Cue> => 
+const getCurrentCues = (time:number, parsedCues:Array<JsonCue>):Array<JsonCue> => 
   parsedCues.filter(({ startTime, endTime }) => time >= startTime && time < endTime);
 
 const cueReducer:Reducer<ICueState, {type: string, payload: any}> = (state, action) => {
@@ -42,7 +42,7 @@ const useCues = (source:string) => {
   const cueBoxRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(cueReducer, initialState);
   const updateTime = (time:number) => dispatch({ type: 'updateTime', payload: time });
-  const parserCallback = (data:{parsedCues:Array<Cue>}) =>
+  const parserCallback = (data:{ parsedCues:Array<JsonCue> }) =>
     dispatch({ type: 'loadData', payload: data });
 
   useEffect(() => {
@@ -51,6 +51,7 @@ const useCues = (source:string) => {
 
   useEffect(() => {
     if (cueBoxRef.current) {
+      console.log(state.currentCues);
       createCuesDiv(state.currentCues, cueBoxRef.current);
     }
   }, [state.currentCues]);
