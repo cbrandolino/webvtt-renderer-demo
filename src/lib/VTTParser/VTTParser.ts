@@ -5,12 +5,14 @@ import ParsingError from './ParsingError';
 import parseCue from './parseCue';
 import { XCue } from '..';
 import { JsonCue } from '../types';
+import { IParseRegion } from './parseRegion';
 
 interface IParserConstructor {
   onError?: (e:Error) => void;
   onRegion?: (region:VTTRegion) => void;
   onCue?: (cue:JsonCue) => void;
   onFlush?: () => void;
+  parseRegion?: (regionProps:IParseRegion) => void;
 };
 
 interface IVTTParser extends IParserConstructor {
@@ -29,14 +31,16 @@ class VTTParser implements IVTTParser {
   onRegion;
   onCue;
   onFlush;
+  parseRegion?:(regionProps:IParseRegion) => void;
 
-  constructor({ onError, onRegion, onCue, onFlush }:IParserConstructor){
+  constructor({ onError, onRegion, onCue, onFlush, parseRegion }:IParserConstructor){
     this.onError = onError;
     this.onRegion = onRegion;
     this.onCue = onCue;
     this.onFlush = onFlush;
     this.cue = null;
     this.regionList = [];
+    this.parseRegion = parseRegion;
   }
 
   private reportOrThrowError(e:Error|unknown) {
@@ -78,73 +82,17 @@ class VTTParser implements IVTTParser {
       return line;
     }
 
-    // 3.4 WebVTT region and WebVTT region settings syntax
-    function parseRegion(input:string) {
-      var settings = new Settings();
-
-      parseOptions(input, function (k:string, v:string) {
-        switch (k) {
-        case "id":
-          settings.set(k, v);
-          break;
-        case "width":
-          settings.percent(k, v);
-          break;
-        case "lines":
-          settings.integer(k, v);
-          break;
-        case "regionanchor":
-        case "viewportanchor":
-          var xy = v.split(',');
-          if (xy.length !== 2) {
-            break;
-          }
-          // We have to make sure both x and y parse, so use a temporary
-          // settings object here.
-          var anchor = new Settings();
-          anchor.percent("x", xy[0]);
-          anchor.percent("y", xy[1]);
-          if (!anchor.has("x") || !anchor.has("y")) {
-            break;
-          }
-          settings.set(k + "X", anchor.get("x"));
-          settings.set(k + "Y", anchor.get("y"));
-          break;
-        case "scroll":
-          settings.alt(k, v, ["up"]);
-          break;
-        }
-      }, /=/, /\s/);
-
-      // Create the region, using default values for any values that were not
-      // specified.
-      if (settings.has("id")) {
-        var region = new VTTRegion();
-        region.width = settings.get("width", 100);
-        region.lines = settings.get("lines", 3);
-        region.regionAnchorX = settings.get("regionanchorX", 0);
-        region.regionAnchorY = settings.get("regionanchorY", 100);
-        region.viewportAnchorX = settings.get("viewportanchorX", 0);
-        region.viewportAnchorY = settings.get("viewportanchorY", 100);
-        region.scroll = settings.get("scroll", "");
-        // Register the region.
-        self.onRegion && self.onRegion(region);
-        // Remember the VTTRegion for later in case we parse any VTTCues that
-        // reference it.
-        self.regionList.push({
-          id: settings.get("id"),
-          region: region
-        });
-      }
-    }
-
     // 3.2 WebVTT metadata header syntax
     function parseHeader(input:string) {
       parseOptions(input, function (k, v) {
         switch (k) {
         case "Region":
           // 3.3 WebVTT region metadata header syntax
-          parseRegion(v);
+          self.parseRegion && self.parseRegion({
+            input: v,
+            regionList: self.regionList,
+            onRegion: self.onRegion
+          });
           break;
         }
       }, /:/);
