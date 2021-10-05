@@ -25,5 +25,5 @@
     "out": "docs"
   },
   "include": [
-    "src/*", "src/lib/*", "src/demo/vtt/useCueTrigger.ts", "src/react-app-env.d.ts" ]
+    "src/*", "src/lib/*", "src/demo/vtt/useCues.ts", "src/react-app-env.d.ts" ]
 }

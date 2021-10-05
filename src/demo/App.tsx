@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import ParserOutput from './components/ParserOutput';
 import Player from './components/Player';
 import LiveData from './components/LiveData';
-import useCues from './vtt/useCueTrigger';
+import useCues from './vtt/useCues';
 import { rawVtt } from './data/cues';
 import { getCuePositions } from './vtt/renderer';
 import TabPanels from './components/TabPanels';
