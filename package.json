@@ -1,8 +1,7 @@
 {
-  "name": "vtt.ts",
-  "version": "0.2.0",
+  "name": "webvtt.ts",
+  "version": "0.3.0",
   "private": true,
-  "homepage": "https://cbrandolino.github.io/webvtt.ts/demo/",
   "scripts": {
     "start": "react-app-rewired start",
     "build": "tsc src/lib/index.ts --outDir lib",

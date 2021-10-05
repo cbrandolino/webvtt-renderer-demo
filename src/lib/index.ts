@@ -1,4 +1,4 @@
 import VTTParser, { parseRegion } from './VTTParser';
-import * as types from './types';
+export type { JsonCue, IVTTParser, ParserCommon, IParserOptions } from './types';
 
-export { VTTParser, parseRegion, types };
+export { VTTParser, parseRegion };

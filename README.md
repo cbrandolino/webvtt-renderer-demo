@@ -2,12 +2,65 @@
 
 TypeScript reimplementation / extension of Mozilla's vtt.js
 
-## Source
+## Demo
 
-The library source can be found in `/src/lib`.
+Run the demo with `npm start`.
+
+The parsed result will be in the "Parsed" tab.
+
+## Usage
+
+### Basic usage
+
+The most important settings are `onFlush` (called after `parser.flush` is called, 
+and all the vtt chunks have been parsed) and `onCue` (called as each cue is parsed).
+
+```typescript
+import { VTTParser, JsonCue } from '../lib/';
+
+const vtt:string; // A string with a (part of) a vtt file
+const parsedCues:Array<JsonCue> = [];
+const parsedRegions:Array<VTTRegion> = [];
+
+const parserSettings = {
+    onFlush: () => console.log('Done! Result: ', parsedCues);
+    onCue: (cue:JsonCue) => parsedCues.push(cue),
+};
+
+const parser = new VTTParser(parserSettings);
+
+parser.parse(vtt);
+parser.flush();
+```
+
+### Streaming
+
+You can parse your vtt in chunks by calling `parser.parse` repeatedly before calling `parser.flush`.
+
+In this case, if there are chunks still to be parsed / reordered, the `onFlush` callback will only
+be called once all of these operations are done
+
+```typescript
+...
+
+chunks.each((chunk) => parser.parse(chunk));
+parser.flush();
+```
+
+### Shims
+
+If your system does not provide the `VTTCue` or `VTTRegion`, you can include the shims in `lib/shims`.
+
+### Documentation
+
+### Api documentation
+
+[webvtt.js typedoc page](https://cbrandolino.github.io/webvtt.ts/docs).
+
+Demo (uses the webvtt renderer)
+
+## Development
+
+The library source can be found in `/src/lib`, and a demo in `src/demo`.
 
 Currently only the parser is implemented.
-
-For usage, see `src/demo/vtt/parser`.
-
-To run the demo, `npm start`.

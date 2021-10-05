@@ -1,5 +1,4 @@
-import Parser from '../../lib/VTTParser';
-import { JsonCue } from '../../lib/types';
+import { VTTParser, JsonCue } from '../../lib/';
 
 export const parseVtt = (vtt:string, onParsed:Function):void => {
   const parsedCues:Array<JsonCue> = [];
@@ -9,10 +8,9 @@ export const parseVtt = (vtt:string, onParsed:Function):void => {
     onError: console.log,
     onFlush: () => onParsed({ parsedCues, parsedRegions }),
     onCue: (cue:JsonCue) => parsedCues.push(cue),
-    onRegion: (region:VTTRegion) => parsedRegions.push(region),
   };
 
-  const parser = new Parser(parserSettings);
+  const parser = new VTTParser(parserSettings);
 
   parser.parse(vtt);
   parser.flush();
