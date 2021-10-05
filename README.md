@@ -37,8 +37,11 @@ If your system does not provide the `VTTCue` or `VTTRegion`, you can include the
 
 ### Basic usage
 
-The most important settings are `onFlush` (called after `parser.flush` is called, 
+The most important options are `onFlush` (called after `parser.flush` is called, 
 and all the vtt chunks have been parsed) and `onCue` (called as each cue is parsed).
+
+[Full list of options](https://cbrandolino.github.io/webvtt.ts/docs/interfaces/types.IParserOptions.html)
+
 
 ```typescript
 import { VTTParser, JsonCue } from '../lib/';

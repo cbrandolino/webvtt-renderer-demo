@@ -1,4 +1,4 @@
-import { JsonCue, cueKeys, CueKeys } from "../types";
+import { JsonCue, cuePropKeys, CueKeys } from "../types";
 
 /**
  * Extends the native VTTCue to add a {@link XCue.toJSON | toJSON} method.
@@ -12,7 +12,7 @@ class XCue extends VTTCue {
    */
   public toJSON():JsonCue {
     const json:Record<string, unknown> = {};
-    cueKeys.forEach((key:CueKeys) => { 
+    cuePropKeys.forEach((key:CueKeys) => { 
       json[key] = this[key]
     });
     return json as JsonCue;

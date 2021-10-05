@@ -5,10 +5,31 @@ import { XCue, JsonCue } from '../types';
 import { IParseRegion } from './parseRegion';
 
 export type ParserCommon = {
+  /**
+   * Callback called in case of parsing error
+   */
   onError?: (e:Error) => void;
-  onRegion?: (region:VTTRegion) => void;
+  /**
+   * Called with a {@link JsonCue} once each cue has been correctly parsed.
+   * 
+   */
   onCue?: (cue:JsonCue) => void;
+  /**
+   * Will be called called after:
+   * 1. {@link VTTParser.flush} has been called;
+   * 2. All cues have been parsed.
+   */
   onFlush?: () => void;
+  /**
+   * Called once each region has been parsed. Only works 
+   * if a {@link IParserOptions.parseRegion | parseRegion} function has been provided.
+   */
+  onRegion?: (region:VTTRegion) => void;
+  /**
+   * A parser for regions. Regions will only be parsed if this parser is provided.
+   * As the feature is rarely used, we didn't include it by default.
+   * You can simply import and pass down the provided {@link parseRegion} function.
+   */
   parseRegion?: (regionProps:IParseRegion) => void;
 }
 
@@ -17,17 +38,21 @@ export interface IParserOptions extends ParserCommon {
 };
 
 export interface IVTTParser extends ParserCommon {
-
+  /**
+   * Parses the provided string or buffer source
+   */
   parse: (data?:BufferSource) => IVTTParser,
-
+  /**
+   * Completes the remaining parsing operations and, once these are over, calls the
+   * {@link IParserOptions.onFlush | onFlush} option if provided.
+   */
+  flush: () => void,
 }
 
 type ParserState = "INITIAL" | "HEADER" | "NOTE" | "ID" | "CUE" | "BADCUE" | "CUETEXT" | "BADWEBVTT";
 
 /**
  * The main parser class.
- * 
- * {@link IVTTParser}
  */
 class VTTParser implements IVTTParser {
   onError;
