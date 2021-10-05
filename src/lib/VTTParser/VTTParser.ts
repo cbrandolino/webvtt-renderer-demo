@@ -6,7 +6,7 @@ import { IParseRegion } from './parseRegion';
 
 export type ParserCommon = {
   /**
-   * Callback called in case of parsing error
+   * Callback for parsing errors
    */
   onError?: (e:Error) => void;
   /**
@@ -34,6 +34,11 @@ export type ParserCommon = {
 }
 
 export interface IParserOptions extends ParserCommon {
+  /**
+   * The decoder used for parsing BufferSources in {@link  IVTTParser.parse}
+   * 
+   * @default new TextDecoder("utf-8");
+   */
   decoder?: TextDecoder
 };
 
@@ -41,7 +46,7 @@ export interface IVTTParser extends ParserCommon {
   /**
    * Parses the provided string or buffer source
    */
-  parse: (data?:BufferSource) => IVTTParser,
+  parse: (data?:BufferSource|string) => void,
   /**
    * Completes the remaining parsing operations and, once these are over, calls the
    * {@link IParserOptions.onFlush | onFlush} option if provided.
@@ -89,133 +94,138 @@ class VTTParser implements IVTTParser {
     }
   }
 
-  public parse(data?:BufferSource|string) {
-    var self = this;
+  /**
+   * Parse header metadata (in this case, just regions)
+   * 
+   * @param input 
+   */
+  private _parseHeader = (input:string):void => {
+    parseOptions(input, (k, v) => {
+      switch (k) {
+      case "Region":
+        // 3.3 WebVTT region metadata header syntax
+        this.parseRegion && this.parseRegion({
+          input: v,
+          regionList: this._regionList,
+          onRegion: this.onRegion
+        });
+        break;
+      }
+    }, /:/);
+  }
 
+  private _collectNextLine = ():string => {
+    var buffer = this._buffer;
+    var pos = 0;
+    while (pos < buffer.length && buffer[pos] !== '\r' && buffer[pos] !== '\n') {
+      ++pos;
+    }
+    var line = buffer.substr(0, pos);
+    // Advance the buffer early in case we fail below.
+    if (buffer[pos] === '\r') {
+      ++pos;
+    }
+    if (buffer[pos] === '\n') {
+      ++pos;
+    }
+    this._buffer = buffer.substr(pos);
+    return line;
+  }
+
+  
+  public parse = (data?:BufferSource|string):void => {
     // If there is no data then we won't decode it, but will just try to parse
     // whatever is in buffer already. This may occur in circumstances, for
     // example when flush() is called.
     if (data) {
       // Try to decode the data that we received.
-      self._buffer += (typeof data === 'string') ?
+      this._buffer += (typeof data === 'string') ?
          data:
-         self._decoder.decode(data, {stream: true});
-    }
-
-    function collectNextLine() {
-      var buffer = self._buffer;
-      var pos = 0;
-      while (pos < buffer.length && buffer[pos] !== '\r' && buffer[pos] !== '\n') {
-        ++pos;
-      }
-      var line = buffer.substr(0, pos);
-      // Advance the buffer early in case we fail below.
-      if (buffer[pos] === '\r') {
-        ++pos;
-      }
-      if (buffer[pos] === '\n') {
-        ++pos;
-      }
-      self._buffer = buffer.substr(pos);
-      return line;
-    }
-
-    // 3.2 WebVTT metadata header syntax
-    function parseHeader(input:string) {
-      parseOptions(input, function (k, v) {
-        switch (k) {
-        case "Region":
-          // 3.3 WebVTT region metadata header syntax
-          self.parseRegion && self.parseRegion({
-            input: v,
-            regionList: self._regionList,
-            onRegion: self.onRegion
-          });
-          break;
-        }
-      }, /:/);
+         this._decoder.decode(data, {stream: true});
     }
 
     // 5.1 WebVTT file parsing.
     try {
       let line = '';
-      if (self._state === "INITIAL") {
+      if (this._state === "INITIAL") {
         // We can't start parsing until we have the first line.
-        if (!/\r\n|\n/.test(self._buffer)) {
-          return this;
+        if (!/\r\n|\n/.test(this._buffer)) {
+          return;
         }
 
-        line = collectNextLine();
+        line = this._collectNextLine();
 
         var m = line.match(/^WEBVTT([ \t].*)?$/);
         if (!m || !m[0]) {
           throw new ParsingError(ParsingError.Errors.BadSignature);
         }
 
-        self._state = "HEADER";
+        this._state = "HEADER";
       }
 
       var alreadyCollectedLine = false;
-      while (self._buffer) {
+      while (this._buffer) {
         // We can't parse a line until we have the full line.
-        if (!/\r\n|\n/.test(self._buffer)) {
-          return this;
+        if (!/\r\n|\n/.test(this._buffer)) {
+          return;
         }
 
         if (!alreadyCollectedLine) {
-          line = collectNextLine();
+          line = this._collectNextLine();
         } else {
           alreadyCollectedLine = false;
         }
 
-        switch (self._state) {
+        switch (this._state) {
         case "HEADER":
           // 13-18 - Allow a header (metadata) under the WEBVTT line.
           if (/:/.test(line)) {
-            parseHeader(line);
+            this._parseHeader(line);
           } else if (!line) {
             // An empty line terminates the header and starts the body (cues).
-            self._state = "ID";
+            this._state = "ID";
           }
           continue;
         case "NOTE":
           // Ignore NOTE blocks.
           if (!line) {
-            self._state = "ID";
+            this._state = "ID";
           }
           continue;
         // @ts-ignore-line
         case "ID":
           // Check for the start of NOTE blocks.
           if (/^NOTE($|[ \t])/.test(line)) {
-            self._state = "NOTE";
+            this._state = "NOTE";
             break;
           }
+
           // 19-29 - Allow any number of line terminators, then initialize new cue values.
-          if (!line) {
-            continue;
-          }
-          self._cue = new XCue(0, 0, "").toJSON();
-          self._state = "CUE";
+          if (!line) continue;
+          
+          this._cue = new XCue(0, 0, "").toJSON();
+          this._state = "CUE";
+
           // 30-39 - Check if self line contains an optional identifier or timing data.
           if (line.indexOf("-->") === -1) {
-            self._cue.id = line;
+            this._cue.id = line;
             continue;
           }
           // Process line as start of a cue.
+          
           /*falls through*/
         case "CUE":
           // 40 - Collect cue timings and settings.
           try {
-            parseCue(line, self._cue!, self._regionList);
+            parseCue(line, this._cue!, this._regionList);
           } catch (e:unknown) {
-            self.reportOrThrowError(e);
+            this.reportOrThrowError(e);
             // In case of an error ignore rest of the cue.
-            self._cue = null;
-            self._state = "BADCUE";
+            this._cue = null;
+            this._state = "BADCUE";
             continue;
           }
-          self._state = "CUETEXT";
+          this._state = "CUETEXT";
           continue;
         case "CUETEXT":
           var hasSubstring = line.indexOf("-->") !== -1;
@@ -225,60 +235,57 @@ class VTTParser implements IVTTParser {
           // one as a new cue.
           if (!line || (hasSubstring && (alreadyCollectedLine = true))) {
             // We are done parsing self cue.
-            self.onCue && self._cue && self.onCue(self._cue);
-            self._cue = null;
-            self._state = "ID";
+            this.onCue && this._cue && this.onCue(this._cue);
+            this._cue = null;
+            this._state = "ID";
             continue;
           }
-          if (self._cue!.text) {
-            self._cue!.text += "\n";
+          if (this._cue!.text) {
+            this._cue!.text += "\n";
           }
-          self._cue!.text += line;
+          this._cue!.text += line;
           continue;
         case "BADCUE": // BADCUE
           // 54-62 - Collect and discard the remaining cue.
           if (!line) {
-            self._state = "ID";
+            this._state = "ID";
           }
           continue;
         }
       }
     } catch (e) {
-      self.reportOrThrowError(e);
+      this.reportOrThrowError(e);
 
       // If we are currently parsing a cue, report what we have.
-      if (self._state === "CUETEXT" && self._cue && self.onCue) {
-        self.onCue(self._cue as XCue);
+      if (this._state === "CUETEXT" && this._cue && this.onCue) {
+        this.onCue(this._cue as XCue);
       }
-      self._cue = null;
+      this._cue = null;
       // Enter BADWEBVTT state if header was not parsed correctly otherwise
       // another exception occurred so enter BADCUE state.
-      self._state = self._state === "INITIAL" ? "BADWEBVTT" : "BADCUE";
+      this._state = this._state === "INITIAL" ? "BADWEBVTT" : "BADCUE";
     }
-    return this;
   }
 
-  flush() {
-    var self = this;
+  public flush = ():void => {
     try {
       // Finish decoding the stream.
-      self._buffer += self._decoder.decode();
+      this._buffer += this._decoder.decode();
       // Synthesize the end of the current cue or region.
-      if (self._cue || self._state === "HEADER") {
-        self._buffer += "\n\n";
-        self.parse();
+      if (this._cue || this._state === "HEADER") {
+        this._buffer += "\n\n";
+        this.parse();
       }
       // If we've flushed, parsed, and we're still on the INITIAL state then
       // that means we don't have enough of the stream to parse the first
       // line.
-      if (self._state === "INITIAL") {
+      if (this._state === "INITIAL") {
         throw new ParsingError(ParsingError.Errors.BadSignature);
       }
     } catch(e) {
-      self.reportOrThrowError(e);
+      this.reportOrThrowError(e);
     }
-    self.onFlush && self.onFlush();
-    return this;
+    this.onFlush && this.onFlush();
   }
 }
 
