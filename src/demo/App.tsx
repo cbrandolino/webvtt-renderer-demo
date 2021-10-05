@@ -10,6 +10,7 @@ import useCues from './vtt/useCueTrigger';
 import { rawVtt } from './data/cues';
 import { getCuePositions } from './vtt/renderer';
 import TabPanels from './components/TabPanels';
+import '../lib/shims/VTTRegion.shim';
 
 const App = () => {
   const { updateTime, state, cueBoxRef } = useCues(rawVtt);

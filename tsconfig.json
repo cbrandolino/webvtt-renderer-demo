@@ -20,6 +20,10 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
+  "typedocOptions": {
+    "entryPoints": ["src/lib/index.ts"],
+    "out": "docs"
+  },
   "include": [
     "src/*", "src/lib/*", "src/demo/vtt/useCueTrigger.ts", "src/react-app-env.d.ts" ]
 }

@@ -2,13 +2,14 @@ import parseOptions from "./parseOptions";
 import Settings from "./Settings";
 
 export interface IParseRegion {
+  /** The region you plan to add */
   input:string,
+  /** The array of regions with the respective ids; will be modified by adding the new one */
   regionList:Array<{ id: string, region: VTTRegion }>,
+  /** Callback to execute when a the region is parsed */
   onRegion?: (region: VTTRegion) => void,
 }
 
-
-    // 3.4 WebVTT region and WebVTT region settings syntax
 function parseRegion({ input, regionList, onRegion }:IParseRegion) {
   var settings = new Settings();
 

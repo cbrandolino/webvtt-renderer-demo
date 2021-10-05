@@ -4,7 +4,7 @@ import Settings from "./Settings";
 import parseTimeStamp from "../shared/parseTimestamp";
 import { JsonCue } from "../types";
 
-function parseCue(input:string, cue:JsonCue, regionList:Array<{region: VTTRegion, id: string}>) {
+function parseCue(input:string, cue:JsonCue, regionList?:Array<{region: VTTRegion, id: string}>) {
   // Remember the original input if we need to throw an error.
   var oInput = input;
   
@@ -28,10 +28,12 @@ function parseCue(input:string, cue:JsonCue, regionList:Array<{region: VTTRegion
       switch (k) {
       case "region":
         // Find the last region we parsed with the same region id.
-        for (var i = regionList.length - 1; i >= 0; i--) {
-          if (regionList[i].id === v) {
-            settings.set(k, regionList[i].region);
-            break;
+        if (regionList) {
+          for (var i = regionList.length - 1; i >= 0; i--) {
+            if (regionList[i].id === v) {
+              settings.set(k, regionList[i].region);
+              break;
+            }
           }
         }
         break;
