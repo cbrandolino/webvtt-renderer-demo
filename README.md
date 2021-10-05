@@ -1,6 +1,7 @@
 # vtt.ts
 
-TypeScript reimplementation / extension of Mozilla's vtt.js
+TypeScript reimplementation / extension of Mozilla's vtt.js.
+
 
 ## Demo
 
@@ -8,7 +9,31 @@ Run the demo with `npm start`.
 
 The parsed result will be in the "Parsed" tab.
 
-## Usage
+## Documentation
+
+### Api documentation
+
+[webvtt.js typedoc page](https://cbrandolino.github.io/webvtt.ts/docs).
+
+### Development
+
+The library source can be found in `/src/lib`, and a demo in `src/demo`.
+
+Currently only the parser is implemented.
+
+### Scripts
+
+- `npm start`: runs the demo app;
+- `npm run build`: builds the library to `/lib`;
+- `npm run build:docs`: builds the typedoc documentation to `docs`;
+
+### Dependencies
+
+None.
+
+## Examples
+
+If your system does not provide the `VTTCue` or `VTTRegion`, you can include the shims in `lib/shims`.
 
 ### Basic usage
 
@@ -46,21 +71,3 @@ be called once all of these operations are done
 chunks.each((chunk) => parser.parse(chunk));
 parser.flush();
 ```
-
-### Shims
-
-If your system does not provide the `VTTCue` or `VTTRegion`, you can include the shims in `lib/shims`.
-
-### Documentation
-
-### Api documentation
-
-[webvtt.js typedoc page](https://cbrandolino.github.io/webvtt.ts/docs).
-
-Demo (uses the webvtt renderer)
-
-## Development
-
-The library source can be found in `/src/lib`, and a demo in `src/demo`.
-
-Currently only the parser is implemented.
