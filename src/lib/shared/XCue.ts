@@ -14,7 +14,4 @@ class XCue extends VTTCue {
   }
 }
 
-//@ts-ignore-next
-window.XCue = XCue;
-
 export default XCue;

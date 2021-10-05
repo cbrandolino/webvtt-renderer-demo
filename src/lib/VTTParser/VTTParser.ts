@@ -1,10 +1,7 @@
-import Settings from './Settings';
-
 import parseOptions from './parseOptions';
 import ParsingError from './ParsingError';
 import parseCue from './parseCue';
-import { XCue } from '..';
-import { JsonCue } from '../types';
+import { XCue, JsonCue } from '../types';
 import { IParseRegion } from './parseRegion';
 
 interface IParserConstructor {

@@ -1,4 +1,4 @@
 import VTTParser from './VTTParser';
-import XCue from './shared/XCue';
+import * as types from './types';
 
-export { VTTParser, XCue };
+export { VTTParser, types };
