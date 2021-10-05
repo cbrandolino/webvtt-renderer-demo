@@ -2,13 +2,12 @@
   "name": "vtt.ts",
   "version": "0.2.0",
   "private": true,
-  "homepage": "./",
+  "homepage": "https://cbrandolino.github.io/webvtt.ts/demo/",
   "scripts": {
     "start": "react-app-rewired start",
     "build": "tsc src/lib/index.ts --outDir lib",
-    "build:demo": "BUILD_PATH='./demo' react-app-rewired build",
     "build:docs": "typedoc",
-    "build:all": "npm run build && npm rum build:demo && npm run build:docs",
+    "build:all": "npm run build && npm run build:docs",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject",
     "docs": "typedoc --excludePrivate"
