@@ -46,16 +46,16 @@ const useCues = (source:string) => {
     dispatch({ type: 'loadData', payload: data });
 
   useEffect(() => {
+    console.log({ source })
     source && parseVtt(source, parserCallback);
   }, [source]);
 
   useEffect(() => {
     if (cueBoxRef.current) {
-      console.log(state.currentCues);
       createCuesDiv(state.currentCues, cueBoxRef.current);
     }
-  }, [state.currentCues]);
-
+  }, [state.currentCues, source]);
+ 
   return { updateTime, state, cueBoxRef };
 }
 

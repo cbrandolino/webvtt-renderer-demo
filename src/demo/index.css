@@ -12,8 +12,6 @@ code {
     monospace;
 }
 
-#cueBox {
-  .yellow {
-    color: yellow
-  };
+.MuiTabs-vertical button {
+  text-align: right;
 }

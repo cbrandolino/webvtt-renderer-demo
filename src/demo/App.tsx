@@ -1,19 +1,21 @@
 import './App.css';
-import ReactJson from 'react-json-view';
+import '../lib/shims/VTTRegion.shim';
+
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 
 import FromFile from './components/FromFile';
 import Player from './components/Player';
 import LiveData from './components/LiveData';
+import RenderExamples from './components/RenderExamples';
 import useCues from './vtt/useCues';
 import { rawVtt } from './data/cues';
-import { getCuePositions } from './vtt/renderer';
 import TabPanels from './components/TabPanels';
-import '../lib/shims/VTTRegion.shim';
+import { useState } from 'react';
 
 const App = () => {
-  const { updateTime, state, cueBoxRef } = useCues(rawVtt);
+  const [source, setSource] = useState(rawVtt);
+  const { updateTime, state, cueBoxRef } = useCues(source);
 
   const { time, currentCues, parsedCues, parsedRegions } = state;
 
@@ -32,7 +34,7 @@ const App = () => {
         <Grid item xs={12}>
           <TabPanels labels={['parser', 'render examples']}>
             <FromFile {...{ parsedCues, parsedRegions, rawVtt }} />
-            <p></p>
+            <RenderExamples onSourceChange={setSource}></RenderExamples>
           </TabPanels>
         </Grid>
       </Grid>

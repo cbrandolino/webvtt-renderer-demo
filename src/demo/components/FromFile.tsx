@@ -2,7 +2,7 @@ import { Grid } from "@material-ui/core";
 import ReactJson from "react-json-view";
 import { JsonCue } from "../../lib";
 
-const ParserOutput = (
+const FromFile = (
   {parsedCues, rawVtt }:
   {parsedCues:Array<JsonCue>, rawVtt:string}  
 ) =>
@@ -17,4 +17,4 @@ const ParserOutput = (
     </Grid>
   </Grid>;
 
-export default ParserOutput;
+export default FromFile;
