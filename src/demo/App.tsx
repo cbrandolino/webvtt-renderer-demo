@@ -3,7 +3,7 @@ import ReactJson from 'react-json-view';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 
-import ParserOutput from './components/ParserOutput';
+import FromFile from './components/FromFile';
 import Player from './components/Player';
 import LiveData from './components/LiveData';
 import useCues from './vtt/useCues';
@@ -30,10 +30,9 @@ const App = () => {
           <LiveData time={time} currentCues={currentCues} />
         </Grid>
         <Grid item xs={12}>
-          <TabPanels labels={['raw vtt', 'parsed', 'positions']}>
-            <pre>{rawVtt}</pre>
-            <ParserOutput {...{ parsedCues, parsedRegions }} />
-            <ReactJson src={getCuePositions(cueBoxRef.current)} />
+          <TabPanels labels={['parser', 'render examples']}>
+            <FromFile {...{ parsedCues, parsedRegions, rawVtt }} />
+            <p></p>
           </TabPanels>
         </Grid>
       </Grid>

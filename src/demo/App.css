@@ -15,3 +15,7 @@
   height: 245px;
   width: 100%;
 }
+
+.source-container {
+  white-space: pre-wrap;
+}

@@ -1,11 +1,11 @@
 import { Card } from "@material-ui/core";
 import ReactJson from "react-json-view";
-import { Cue } from "../vtt/types";
+import { JsonCue } from "../../lib";
 
 
 const LiveData = (
   { time, currentCues }:
-  {time: number, currentCues:Array<Cue>}
+  {time: number, currentCues:Array<JsonCue>}
 ) =>
   <Card className="meta-container">
     <p><strong>Time:</strong> {time}</p>
